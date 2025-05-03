@@ -59,9 +59,14 @@ def analizar_composicion(composicion):
 
 class PDF(FPDF):
     def header(self):
+        try:
+            self.image("logo_petrogas.png", x=10, y=8, w=30)  # Ajustá nombre si es distinto
+        except:
+            pass  # Si el logo no se encuentra, no rompe el PDF
         self.set_font('Arial', 'B', 12)
         self.cell(0, 10, 'Informe de Analisis de Gas Natural', 0, 1, 'C')
-        self.ln(5)
+        self.ln(15)
+
     def add_sample(self, nombre, resultados):
         self.set_font('Arial', '', 10)
         self.cell(0, 10, f"Muestra: {nombre}", 0, 1)
