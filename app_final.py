@@ -94,17 +94,17 @@ if archivo:
     st.subheader("Resultados del analisis")
     st.dataframe(pd.DataFrame.from_dict(resultados, orient='index', columns=['Valor']))
 
-   pdf = PDF()
-pdf.add_page()
-pdf.add_sample("Muestra", resultados)
+      pdf = PDF()
+    pdf.add_page()
+    pdf.add_sample("Muestra", resultados)
 
-pdf_bytes = pdf.output(dest='S').encode('latin1')
-buffer = io.BytesIO(pdf_bytes)
+    pdf_bytes = pdf.output(dest='S').encode('latin1')
+    buffer = io.BytesIO(pdf_bytes)
 
-st.download_button(
-    label="Descargar informe PDF",
-    data=buffer,
-    file_name=f"Informe_Gas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-    mime="application/pdf"
-)
+    st.download_button(
+        label="Descargar informe PDF",
+        data=buffer,
+        file_name=f"Informe_Gas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+        mime="application/pdf"
+    )
 
