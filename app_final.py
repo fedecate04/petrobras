@@ -24,20 +24,36 @@ PM_aire = 28.96
 T_std = 288.15
 P_std = 101325
 
-# --- GAS NATURAL ---
+class PDF(FPDF):
+    def header(self):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, f"Informe de Calidad - {modulo}", 0, 1, 'C')
+        self.ln(5)
+
+    def add_sample(self, nombre, resultados):
+        self.set_font('Arial', '', 10)
+        self.cell(0, 10, f"Muestra: {nombre}", 0, 1)
+        for k, v in resultados.items():
+            if k != 'Validación':
+                self.cell(0, 8, f"{k}: {v:.4f}" if isinstance(v, float) else f"{k}: {v}", 0, 1)
+        self.ln(3)
+        if 'Validación' in resultados:
+            self.set_font('Arial', 'B', 10)
+            self.cell(0, 8, 'Validación de parámetros:', 0, 1)
+            self.set_font('Arial', '', 10)
+            for param, (valor, (op, ref, unidad)) in resultados['Validación'].items():
+                if op == '<':
+                    cumple = valor < ref
+                    espec = f"< {ref} {unidad}"
+                else:
+                    cumple = ref[0] <= valor <= ref[1]
+                    espec = f"{ref[0]}-{ref[1]} {unidad}"
+                estado = 'CUMPLE' if cumple else 'NO CUMPLE'
+                self.cell(0, 8, f"{estado} {param}: {valor:.2f} ({espec})", 0, 1)
+        self.ln(5)
+
 if modulo == "Gas Natural":
     st.header("📄 Módulo de Gas Natural")
-    st.markdown("""
-    ### 🧾 Descripción del sistema
-    Este sistema permite analizar la composición de una muestra de gas natural a partir de un archivo `.csv` con los porcentajes molares de sus componentes.
-
-    ### 📂 ¿Qué debe contener el archivo CSV?
-    El archivo debe contener una fila con los siguientes encabezados: CH4, C2H6, C3H8, i-C4H10, n-C4H10, i-C5H12, n-C5H12, C6+, N2, CO2, H2S, O2
-
-    ### 📊 ¿Qué calcula?
-    PM, PCS, gamma, índice de Wobbe, densidad, dew point, H2S ppm, ingreso estimado, validación.
-    """)
-
     valor_dolar = st.number_input("💲 Ingresá el valor estimado en USD por MJ de PCS", value=2.25, step=0.01)
     archivo = st.file_uploader("Subí un archivo CSV con una muestra", type="csv")
 
@@ -76,33 +92,6 @@ if modulo == "Gas Natural":
             'Validación': validacion
         }
 
-    class PDF(FPDF):
-        def header(self):
-            self.set_font('Arial', 'B', 12)
-            self.cell(0, 10, 'Informe de Gas Natural', 0, 1, 'C')
-            self.ln(5)
-
-        def add_sample(self, nombre, resultados):
-            self.set_font('Arial', '', 10)
-            self.cell(0, 10, f"Muestra: {nombre}", 0, 1)
-            for k, v in resultados.items():
-                if k != 'Validación':
-                    self.cell(0, 8, f"{k}: {v:.4f}" if isinstance(v, float) else f"{k}: {v}", 0, 1)
-            self.ln(3)
-            self.set_font('Arial', 'B', 10)
-            self.cell(0, 8, 'Validación de parámetros:', 0, 1)
-            self.set_font('Arial', '', 10)
-            for param, (valor, (op, ref, unidad)) in resultados['Validación'].items():
-                if op == '<':
-                    cumple = valor < ref
-                    espec = f"< {ref} {unidad}"
-                else:
-                    cumple = ref[0] <= valor <= ref[1]
-                    espec = f"{ref[0]}-{ref[1]} {unidad}"
-                estado = 'CUMPLE' if cumple else 'NO CUMPLE'
-                self.cell(0, 8, f"{estado} {param}: {valor:.2f} ({espec})", 0, 1)
-            self.ln(5)
-
     if archivo:
         df = pd.read_csv(archivo)
         fila = df.iloc[0]
@@ -124,5 +113,39 @@ if modulo == "Gas Natural":
             file_name=f"Informe_Gas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
             mime="application/pdf"
         )
+
+elif modulo == "Gasolina Estabilizada":
+    st.header("📄 Módulo de Gasolina Estabilizada")
+    tvr = st.number_input("🔬 TVR medido a 38.7 °C (psi)", min_value=0.0)
+    sales = st.number_input("🧂 Concentración de sales (mg/l)", min_value=0.0)
+    color = st.text_input("🎨 Color (observación)")
+
+    validacion = {
+        'TVR (psi a 38.7 °C)': (tvr, ('<', 12, 'psi')),
+        'Sales (mg/l)': (sales, ('<', 20, 'mg/l'))
+    }
+
+    resultados = {
+        'TVR (psi a 38.7 °C)': tvr,
+        'Concentración de sales (mg/l)': sales,
+        'Color': color,
+        'Validación': validacion
+    }
+
+    st.subheader("Resultados del análisis")
+    st.dataframe(pd.DataFrame.from_dict(resultados, orient='index', columns=['Valor']))
+
+    pdf = PDF()
+    pdf.add_page()
+    pdf.add_sample("Gasolina", resultados)
+    pdf_bytes = pdf.output(dest='S').encode('latin-1', errors='replace')
+    buffer = io.BytesIO(pdf_bytes)
+
+    st.download_button(
+        label="📥 Descargar informe PDF",
+        data=buffer,
+        file_name=f"Informe_Gasolina_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+        mime="application/pdf"
+    )
 
 
