@@ -43,19 +43,20 @@ def analizar_composicion(composicion):
         'PCS (kcal/m3)': (hhv_total * 239.006, ('>=', (8850, 12200), 'Kcal/Sm3'))
     }
     return {
-        'PM': pm_muestra,
-        'PCS (MJ/m3)': hhv_total,
-        'PCS (kcal/m3)': hhv_total * 239.006,
-        'Gamma': gamma,
-        'Wobbe': wobbe,
-        'Densidad (kg/m3)': densidad,
-        'Dew Point estimado (°C)': dew_point,
-        'CO2 (%)': composicion.get('CO2', 0),
-        'H2S ppm': api_h2s_ppm,
-        'Carga H2S (kg/kg)': carga_h2s,
-        resultados = analizar_composicion(composicion, valor_dolar)
-        'Validación': validacion
-    }
+    'PM': pm_muestra,
+    'PCS (MJ/m3)': hhv_total,
+    'PCS (kcal/m3)': hhv_total * 239.006,
+    'Gamma': gamma,
+    'Wobbe': wobbe,
+    'Densidad (kg/m3)': densidad,
+    'Dew Point estimado (°C)': dew_point,
+    'CO2 (%)': composicion.get('CO2', 0),
+    'H2S ppm': api_h2s_ppm,
+    'Carga H2S (kg/kg)': carga_h2s,
+    'Ingreso estimado (USD/m3)': hhv_total * valor_dolar,
+    'Validación': validacion
+}
+
 
 class PDF(FPDF):
     def header(self):
