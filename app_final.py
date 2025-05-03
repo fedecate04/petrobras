@@ -29,32 +29,13 @@ if modulo == "Gas Natural":
     st.header("📄 Módulo de Gas Natural")
     st.markdown("""
     ### 🧾 Descripción del sistema
-    Este sistema permite analizar la composición de una muestra de gas natural a partir de un archivo `.csv` con los porcentajes molares de sus componentes.  
-    A partir de esa información, calcula parámetros clave para la evaluación del gas y genera un informe técnico en formato PDF.
-
-    ---
+    Este sistema permite analizar la composición de una muestra de gas natural a partir de un archivo `.csv` con los porcentajes molares de sus componentes.
 
     ### 📂 ¿Qué debe contener el archivo CSV?
-    El archivo debe contener **una fila con los siguientes nombres de columnas** (en cualquier orden, pero con estos encabezados exactos):
-    - `CH4`, `C2H6`, `C3H8`, `i-C4H10`, `n-C4H10`, `i-C5H12`, `n-C5H12`, `C6+`
-    - `N2`, `CO2`, `H2S`, `O2`
-    Los valores deben estar expresados en **% molar**. Solo se analiza la **primera fila** del archivo.
+    El archivo debe contener una fila con los siguientes encabezados: CH4, C2H6, C3H8, i-C4H10, n-C4H10, i-C5H12, n-C5H12, C6+, N2, CO2, H2S, O2
 
-    ---
-
-    ### 📊 ¿Qué cálculos realiza?
-    - **PM**: Peso molecular promedio del gas  
-    - **PCS**: Poder Calorífico Superior en MJ/m³ y kcal/m³  
-    - **Gamma**: Relación de PM aire / PM gas  
-    - **Índice de Wobbe**: Importante para el rendimiento energético  
-    - **Densidad** a condiciones estándar  
-    - **Dew Point estimado**: Según presencia de componentes pesados  
-    - **Carga de H₂S** y concentración en ppm  
-    - **Ingreso estimado (USD/m³)**: En base al PCS  
-    - **Validación de parámetros críticos**: Contra especificaciones típicas del gas comercial
-
-    ---
-    Una vez subido el archivo, podrás visualizar los resultados y descargar un informe PDF automático.
+    ### 📊 ¿Qué calcula?
+    PM, PCS, gamma, índice de Wobbe, densidad, dew point, H2S ppm, ingreso estimado, validación.
     """)
 
     valor_dolar = st.number_input("💲 Ingresá el valor estimado en USD por MJ de PCS", value=2.25, step=0.01)
@@ -134,98 +115,13 @@ if modulo == "Gas Natural":
         pdf = PDF()
         pdf.add_page()
         pdf.add_sample("Muestra", resultados)
-        pdf_bytes = pdf.output(dest='S').encode('latin1')
+        pdf_bytes = pdf.output(dest='S').encode('latin-1', errors='replace')
         buffer = io.BytesIO(pdf_bytes)
 
         st.download_button(
             label="📥 Descargar informe PDF",
             data=buffer,
             file_name=f"Informe_Gas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-            mime="application/pdf"
-        )
-
-# --- GASOLINA ESTABILIZADA ---
-if modulo == "Gasolina Estabilizada":
-    st.header("📄 Módulo de Gasolina Estabilizada")
-    st.markdown("""
-    Este módulo permite ingresar manualmente los parámetros de una muestra de gasolina estabilizada.  
-    Se evalúan los siguientes indicadores contra especificaciones típicas:
-
-    - **TVR (psi a 38.7 °C)**: Presión medida del vapor recuperado. Refleja volatilidad y seguridad.
-    - **Sales (mg/L)**: Medida de contaminantes inorgánicos. Valores altos pueden corroer equipos.
-    - **Color (ASTM)**: Indicador visual relacionado con el proceso de estabilización. Texto de observación.
-    - **Densidad (kg/m³)**: Parámetro físico importante para compatibilidad y rendimiento.
-
-    Ingresá los valores según el análisis de laboratorio y generá un informe en PDF con validación automática.
-    """)
-
-    tvr = st.number_input("TVR (psi a 38.7 °C)", min_value=0.0, max_value=100.0, value=7.0)
-    sales = st.number_input("Concentración de Sales (mg/L)", min_value=0.0, max_value=10.0, value=2.0)
-    color = st.text_input("Color ASTM / Observación", value="Color dentro de especificación")
-    densidad = st.number_input("Densidad a 15 °C (kg/m³)", min_value=600.0, max_value=800.0, value=730.0)
-
-    if st.button("Generar informe de gasolina"):
-        resultados = {
-            "TVR (psi a 38.7 °C)": tvr,
-            "Sales (mg/L)": sales,
-            "Color ASTM": color,
-            "Densidad (kg/m³)": densidad
-        }
-        especificaciones = {
-            "TVR (psi a 38.7 °C)": (5, 10),
-            "Sales (mg/L)": (0, 3),
-            "Densidad (kg/m³)": (700, 740)
-        }
-
-        validacion = {}
-        for k in resultados:
-            if k == "Color ASTM":
-                validacion[k] = (resultados[k], "Observación", True)
-            else:
-                valor = resultados[k]
-                min_, max_ = especificaciones[k]
-                cumple = min_ <= valor <= max_
-                validacion[k] = (valor, (min_, max_), cumple)
-
-        st.subheader("📊 Resultados del análisis de gasolina")
-        tabla = []
-        for k, val in validacion.items():
-            if k == "Color ASTM":
-                tabla.append({"Parámetro": k, "Valor": val[0], "Especificación": val[1], "Cumple": "Observación"})
-            else:
-                valor, (min_, max_), cumple = val
-                tabla.append({"Parámetro": k, "Valor": valor, "Especificación": f"{min_}–{max_}", "Cumple": "✅" if cumple else "❌"})
-        df_val = pd.DataFrame(tabla)
-        st.dataframe(df_val)
-
-        class PDFGasolina(FPDF):
-            def header(self):
-                self.set_font('Arial', 'B', 12)
-                self.cell(0, 10, 'Informe de Gasolina Estabilizada', 0, 1, 'C')
-                self.ln(10)
-
-            def add_resultados(self, resultados, validacion):
-                self.set_font('Arial', '', 10)
-                for param in resultados:
-                    valor = resultados[param]
-                    if param == "Color ASTM":
-                        self.cell(0, 8, f"{param}: {valor} (Observación)", 0, 1)
-                    else:
-                        min_, max_ = validacion[param][1]
-                        cumple = validacion[param][2]
-                        estado = 'CUMPLE' if cumple else 'NO CUMPLE'
-                        self.cell(0, 8, f"{param}: {valor} ({estado}, espec: {min_}–{max_})", 0, 1)
-
-        pdf = PDFGasolina()
-        pdf.add_page()
-        pdf.add_resultados(resultados, validacion)
-        pdf_bytes = pdf.output(dest='S').encode('latin-1', errors='replace')
-        buffer = io.BytesIO(pdf_bytes)
-
-        st.download_button(
-            label="📥 Descargar informe PDF de Gasolina",
-            data=buffer,
-            file_name=f"Informe_Gasolina_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
             mime="application/pdf"
         )
 
