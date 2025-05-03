@@ -135,7 +135,7 @@ if archivo:
     fila = df.iloc[0]
     composicion = {k: fila[k] for k in PM if k in fila}
 
-    resultados = analizar_composicion(composicion, valor_dolar)
+     resultados = analizar_composicion(composicion, valor_dolar)
 
     st.subheader("Resultados del análisis")
     st.dataframe(pd.DataFrame.from_dict(resultados, orient='index', columns=['Valor']))
