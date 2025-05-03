@@ -94,7 +94,7 @@ if archivo:
     st.subheader("Resultados del analisis")
     st.dataframe(pd.DataFrame.from_dict(resultados, orient='index', columns=['Valor']))
 
-      pdf = PDF()
+    pdf = PDF()
     pdf.add_page()
     pdf.add_sample("Muestra", resultados)
 
@@ -107,4 +107,3 @@ if archivo:
         file_name=f"Informe_Gas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
         mime="application/pdf"
     )
-
