@@ -92,7 +92,7 @@ class PDF(FPDF):
 
 # INTERFAZ
 st.title("Analizador de Gas Natural")
-st.markdown("Subí un archivo .csv con una muestra de gas y generá un informe técnico en PDF.")
+st.markdown("""
 ### 🧾 Descripción del sistema
 
 Este sistema permite analizar la composición de una muestra de gas natural a partir de un archivo `.csv` con los porcentajes molares de sus componentes.  
@@ -115,14 +115,14 @@ Los valores deben estar expresados en **% molar**. Solo se analiza la **primera 
 
 El sistema calcula:
 
-- **PM**: Peso molecular promedio del gas
-- **PCS**: Poder Calorífico Superior en MJ/m³ y kcal/m³
-- **Gamma**: Relación de PM aire / PM gas
-- **Índice de Wobbe**: Importante para el rendimiento energético
-- **Densidad** a condiciones estándar
-- **Dew Point estimado**: Según presencia de componentes pesados
-- **Carga de H₂S** y concentración en ppm
-- **Ingreso estimado (USD/m³)**: En base al PCS
+- **PM**: Peso molecular promedio del gas  
+- **PCS**: Poder Calorífico Superior en MJ/m³ y kcal/m³  
+- **Gamma**: Relación de PM aire / PM gas  
+- **Índice de Wobbe**: Importante para el rendimiento energético  
+- **Densidad** a condiciones estándar  
+- **Dew Point estimado**: Según presencia de componentes pesados  
+- **Carga de H₂S** y concentración en ppm  
+- **Ingreso estimado (USD/m³)**: En base al PCS  
 - **Validación de parámetros críticos**: Contra especificaciones típicas del gas comercial
 
 ---
