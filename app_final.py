@@ -137,11 +137,9 @@ if archivo:
     st.subheader("Resultados del análisis")
     st.dataframe(pd.DataFrame.from_dict(resultados, orient='index', columns=['Valor']))
 
-
     pdf = PDF()
     pdf.add_page()
     pdf.add_sample("Muestra", resultados)
-
     pdf_bytes = pdf.output(dest='S').encode('latin1')
     buffer = io.BytesIO(pdf_bytes)
 
