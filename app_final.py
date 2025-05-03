@@ -98,7 +98,8 @@ if archivo:
     pdf.add_page()
     pdf.add_sample("Muestra", resultados)
     buffer = io.BytesIO()
-    pdf.output(buffer)
+    pdf.output(buffer, 'S').encode('latin1')
+
     buffer.seek(0)
     st.download_button(
         label="Descargar informe PDF",
