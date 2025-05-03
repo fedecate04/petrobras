@@ -133,7 +133,7 @@ if archivo:
     df = pd.read_csv(archivo)
     fila = df.iloc[0]
     composicion = {k: fila[k] for k in PM if k in fila}
-    
+
     resultados = analizar_composicion(composicion, valor_dolar)
 
     st.subheader("Resultados del análisis")
