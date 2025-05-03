@@ -60,7 +60,7 @@ def analizar_composicion(composicion):
 class PDF(FPDF):
     def header(self):
         try:
-            self.image("logo_petrogas.png", x=10, y=8, w=30)  # Ajustá nombre si es distinto
+            self.image("LOGO PETROGAS.png", x=10, y=8, w=30)  # Ajustá nombre si es distinto
         except:
             pass  # Si el logo no se encuentra, no rompe el PDF
         self.set_font('Arial', 'B', 12)
