@@ -219,8 +219,7 @@ if modulo == "Gasolina Estabilizada":
         pdf = PDFGasolina()
         pdf.add_page()
         pdf.add_resultados(resultados, validacion)
-
-       pdf_bytes = pdf.output(dest='S').encode('latin-1', errors='replace')
+        pdf_bytes = pdf.output(dest='S').encode('latin-1', errors='replace')
         buffer = io.BytesIO(pdf_bytes)
 
         st.download_button(
