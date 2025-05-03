@@ -84,6 +84,44 @@ class PDF(FPDF):
         self.ln(5)
 
 st.title("Analizador de Gas Natural")
+st.markdown("""
+### 🧾 Descripción del sistema
+
+Este sistema permite analizar la composición de una muestra de gas natural a partir de un archivo `.csv` con los porcentajes molares de sus componentes.  
+A partir de esa información, calcula parámetros clave para la evaluación del gas y genera un informe técnico en formato PDF.
+
+---
+
+### 📂 ¿Qué debe contener el archivo CSV?
+
+El archivo debe contener **una fila con los siguientes nombres de columnas** (en cualquier orden, pero con estos encabezados exactos):
+
+- `CH4`, `C2H6`, `C3H8`, `i-C4H10`, `n-C4H10`, `i-C5H12`, `n-C5H12`, `C6+`
+- `N2`, `CO2`, `H2S`, `O2`
+
+Los valores deben estar expresados en **% molar**. Solo se analiza la **primera fila** del archivo.
+
+---
+
+### 📊 ¿Qué cálculos realiza?
+
+El sistema calcula:
+
+- **PM**: Peso molecular promedio del gas
+- **PCS**: Poder Calorífico Superior en MJ/m³ y kcal/m³
+- **Gamma**: Relación de PM aire / PM gas
+- **Índice de Wobbe**: Importante para el rendimiento energético
+- **Densidad** a condiciones estándar
+- **Dew Point estimado**: Según presencia de componentes pesados
+- **Carga de H₂S** y concentración en ppm
+- **Ingreso estimado (USD/m³)**: En base al PCS
+- **Validación de parámetros críticos**: Contra especificaciones típicas del gas comercial
+
+---
+
+Una vez subido el archivo, podrás visualizar los resultados y descargar un informe PDF automático.
+""")
+
 archivo = st.file_uploader("Subi un archivo CSV con una muestra", type="csv")
 
 if archivo:
