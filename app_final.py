@@ -53,7 +53,7 @@ def analizar_composicion(composicion):
         'CO2 (%)': composicion.get('CO2', 0),
         'H2S ppm': api_h2s_ppm,
         'Carga H2S (kg/kg)': carga_h2s,
-        'resultados = analizar_composicion(composicion, valor_dolar)
+        resultados = analizar_composicion(composicion, valor_dolar)
         'Validación': validacion
     }
 
