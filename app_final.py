@@ -151,44 +151,50 @@ if modulo == "Gasolina Estabilizada":
     Este módulo permite ingresar manualmente los parámetros de una muestra de gasolina estabilizada.  
     Se evalúan los siguientes indicadores contra especificaciones típicas:
 
-    - **TVR (°C)**: Temperatura de Vapor Recuperado, clave para controlar la volatilidad de la gasolina.
+    - **TVR (psi a 38.7 °C)**: Presión medida del vapor recuperado. Refleja volatilidad y seguridad.
     - **Sales (mg/L)**: Medida de contaminantes inorgánicos. Valores altos pueden corroer equipos.
-    - **Color (ASTM)**: Indicador visual relacionado con el proceso de estabilización.
+    - **Color (ASTM)**: Indicador visual relacionado con el proceso de estabilización. Texto de observación.
     - **Densidad (kg/m³)**: Parámetro físico importante para compatibilidad y rendimiento.
 
     Ingresá los valores según el análisis de laboratorio y generá un informe en PDF con validación automática.
     """)
 
-    tvr = st.number_input("TVR (°C)", min_value=0.0, max_value=100.0, value=55.0)
+    tvr = st.number_input("TVR (psi a 38.7 °C)", min_value=0.0, max_value=100.0, value=7.0)
     sales = st.number_input("Concentración de Sales (mg/L)", min_value=0.0, max_value=10.0, value=2.0)
-    color = st.number_input("Color ASTM", min_value=0.0, max_value=10.0, value=2.0)
+    color = st.text_input("Color ASTM / Observación", value="Color dentro de especificación")
     densidad = st.number_input("Densidad a 15 °C (kg/m³)", min_value=600.0, max_value=800.0, value=730.0)
 
     if st.button("Generar informe de gasolina"):
         resultados = {
-            "TVR (°C)": tvr,
+            "TVR (psi a 38.7 °C)": tvr,
             "Sales (mg/L)": sales,
             "Color ASTM": color,
             "Densidad (kg/m³)": densidad
         }
         especificaciones = {
-            "TVR (°C)": (50, 60),
+            "TVR (psi a 38.7 °C)": (5, 10),
             "Sales (mg/L)": (0, 3),
-            "Color ASTM": (0, 3),
             "Densidad (kg/m³)": (700, 740)
         }
 
         validacion = {}
         for k in resultados:
-            valor = resultados[k]
-            min_, max_ = especificaciones[k]
-            cumple = min_ <= valor <= max_
-            validacion[k] = (valor, (min_, max_), cumple)
+            if k == "Color ASTM":
+                validacion[k] = (resultados[k], "Observación", True)
+            else:
+                valor = resultados[k]
+                min_, max_ = especificaciones[k]
+                cumple = min_ <= valor <= max_
+                validacion[k] = (valor, (min_, max_), cumple)
 
         st.subheader("📊 Resultados del análisis de gasolina")
         tabla = []
-        for k, (valor, (min_, max_), cumple) in validacion.items():
-            tabla.append({"Parámetro": k, "Valor": valor, "Especificación": f"{min_}–{max_}", "Cumple": "✅" if cumple else "❌"})
+        for k, val in validacion.items():
+            if k == "Color ASTM":
+                tabla.append({"Parámetro": k, "Valor": val[0], "Especificación": val[1], "Cumple": "Observación"})
+            else:
+                valor, (min_, max_), cumple = val
+                tabla.append({"Parámetro": k, "Valor": valor, "Especificación": f"{min_}–{max_}", "Cumple": "✅" if cumple else "❌"})
         df_val = pd.DataFrame(tabla)
         st.dataframe(df_val)
 
@@ -202,10 +208,13 @@ if modulo == "Gasolina Estabilizada":
                 self.set_font('Arial', '', 10)
                 for param in resultados:
                     valor = resultados[param]
-                    min_, max_ = validacion[param][1]
-                    cumple = validacion[param][2]
-                    estado = 'CUMPLE' if cumple else 'NO CUMPLE'
-                    self.cell(0, 8, f"{param}: {valor} ({estado}, espec: {min_}–{max_})", 0, 1)
+                    if param == "Color ASTM":
+                        self.cell(0, 8, f"{param}: {valor} (Observación)", 0, 1)
+                    else:
+                        min_, max_ = validacion[param][1]
+                        cumple = validacion[param][2]
+                        estado = 'CUMPLE' if cumple else 'NO CUMPLE'
+                        self.cell(0, 8, f"{param}: {valor} ({estado}, espec: {min_}–{max_})", 0, 1)
 
         pdf = PDFGasolina()
         pdf.add_page()
