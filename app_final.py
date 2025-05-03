@@ -127,15 +127,15 @@ El sistema calcula:
 Una vez subido el archivo, podrás visualizar los resultados y descargar un informe PDF automático.
 """)
 
-archivo = st.file_uploader("Subi un archivo CSV con una muestra", type="csv")
 valor_dolar = st.number_input("💲 Ingresá el valor estimado en USD por MJ de PCS", value=2.25, step=0.01)
+
+archivo = st.file_uploader("Subí un archivo CSV con una muestra", type="csv")
 
 if archivo:
     df = pd.read_csv(archivo)
     fila = df.iloc[0]
     composicion = {k: fila[k] for k in PM if k in fila}
-
-     resultados = analizar_composicion(composicion, valor_dolar)
+    resultados = analizar_composicion(composicion, valor_dolar)
 
     st.subheader("Resultados del análisis")
     st.dataframe(pd.DataFrame.from_dict(resultados, orient='index', columns=['Valor']))
