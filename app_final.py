@@ -133,19 +133,23 @@ if archivo:
     df = pd.read_csv(archivo)
     fila = df.iloc[0]
     composicion = {k: fila[k] for k in PM if k in fila}
+    
     resultados = analizar_composicion(composicion, valor_dolar)
+
     st.subheader("Resultados del análisis")
     st.dataframe(pd.DataFrame.from_dict(resultados, orient='index', columns=['Valor']))
 
     pdf = PDF()
     pdf.add_page()
     pdf.add_sample("Muestra", resultados)
+
     pdf_bytes = pdf.output(dest='S').encode('latin1')
     buffer = io.BytesIO(pdf_bytes)
 
     st.download_button(
-        label="Descargar informe PDF",
+        label="📥 Descargar informe PDF",
         data=buffer,
         file_name=f"Informe_Gas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
         mime="application/pdf"
     )
+
