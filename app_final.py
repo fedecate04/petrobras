@@ -35,7 +35,10 @@ class PDF(FPDF):
         self.cell(0, 10, f"Muestra: {nombre}", 0, 1)
         for k, v in resultados.items():
             if k != 'Validación':
-                self.cell(0, 8, f"{k}: {v:.4f}" if isinstance(v, float) else f"{k}: {v}", 0, 1)
+                try:
+                    self.cell(0, 8, f"{k}: {v:.4f}" if isinstance(v, float) else f"{k}: {v}", 0, 1)
+                except:
+                    self.cell(0, 8, f"{k}: [ERROR AL MOSTRAR]", 0, 1)
         self.ln(3)
         if 'Validación' in resultados:
             self.set_font('Arial', 'B', 10)
@@ -104,7 +107,7 @@ if modulo == "Gas Natural":
         pdf = PDF()
         pdf.add_page()
         pdf.add_sample("Muestra", resultados)
-        pdf_bytes = pdf.output(dest='S').encode('latin-1', errors='replace')
+        pdf_bytes = pdf.output(dest='S').encode('utf-8', errors='replace')
         buffer = io.BytesIO(pdf_bytes)
 
         st.download_button(
@@ -118,7 +121,7 @@ elif modulo == "Gasolina Estabilizada":
     st.header("📄 Módulo de Gasolina Estabilizada")
     tvr = st.number_input("🔬 TVR medido a 38.7 °C (psi)", min_value=0.0)
     sales = st.number_input("🧂 Concentración de sales (mg/l)", min_value=0.0)
-    color = st.text_input("🎨 Color (observación)")
+    color = st.text_area("🎨 Color (observación)")
 
     validacion = {
         'TVR (psi a 38.7 °C)': (tvr, ('<', 12, 'psi')),
@@ -138,7 +141,7 @@ elif modulo == "Gasolina Estabilizada":
     pdf = PDF()
     pdf.add_page()
     pdf.add_sample("Gasolina", resultados)
-    pdf_bytes = pdf.output(dest='S').encode('latin-1', errors='replace')
+    pdf_bytes = pdf.output(dest='S').encode('utf-8', errors='replace')
     buffer = io.BytesIO(pdf_bytes)
 
     st.download_button(
