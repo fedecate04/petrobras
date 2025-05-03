@@ -34,7 +34,7 @@ def analizar_composicion(composicion):
     dew_point = -30 if fracciones.get('C6+', 0) > 0.01 else -60
     api_h2s_ppm = composicion.get('H2S', 0) * 1e4
     carga_h2s = (api_h2s_ppm * PM['H2S'] / 1e6) / (pm_muestra * 1e3)
-    ingreso = hhv_total * 2.25
+    valor_dolar = st.number_input("💲 Ingresá el valor estimado en USD por MJ de PCS", value=2.25, step=0.01)
     validacion = {
         'CO2 (%)': (composicion.get('CO2', 0), ('<', 2, '% molar')),
         'Inertes totales': (sum(composicion.get(k, 0) for k in ['N2', 'CO2', 'O2']), ('<', 4, '% molar')),
@@ -53,7 +53,7 @@ def analizar_composicion(composicion):
         'CO2 (%)': composicion.get('CO2', 0),
         'H2S ppm': api_h2s_ppm,
         'Carga H2S (kg/kg)': carga_h2s,
-        'Ingreso estimado (USD/m3)': ingreso,
+        'resultados = analizar_composicion(composicion, valor_dolar)
         'Validación': validacion
     }
 
