@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -22,7 +21,8 @@ PM_aire = 28.96
 T_std = 288.15
 P_std = 101325
 
-def analizar_composicion(composicion):
+# ✅ PARAMETRIZADA CON valor_dolar
+def analizar_composicion(composicion, valor_dolar):
     composicion = {k: float(v) for k, v in composicion.items() if k in PM}
     total = sum(composicion.values())
     fracciones = {k: v / total for k, v in composicion.items()}
@@ -34,6 +34,8 @@ def analizar_composicion(composicion):
     dew_point = -30 if fracciones.get('C6+', 0) > 0.01 else -60
     api_h2s_ppm = composicion.get('H2S', 0) * 1e4
     carga_h2s = (api_h2s_ppm * PM['H2S'] / 1e6) / (pm_muestra * 1e3)
+    ingreso = hhv_total * valor_dolar
+
     validacion = {
         'CO2 (%)': (composicion.get('CO2', 0), ('<', 2, '% molar')),
         'Inertes totales': (sum(composicion.get(k, 0) for k in ['N2', 'CO2', 'O2']), ('<', 4, '% molar')),
@@ -41,28 +43,28 @@ def analizar_composicion(composicion):
         'H2S (ppm)': (api_h2s_ppm, ('<', 2, 'ppm')),
         'PCS (kcal/m3)': (hhv_total * 239.006, ('>=', (8850, 12200), 'Kcal/Sm3'))
     }
-    return {
-    'PM': pm_muestra,
-    'PCS (MJ/m3)': hhv_total,
-    'PCS (kcal/m3)': hhv_total * 239.006,
-    'Gamma': gamma,
-    'Wobbe': wobbe,
-    'Densidad (kg/m3)': densidad,
-    'Dew Point estimado (°C)': dew_point,
-    'CO2 (%)': composicion.get('CO2', 0),
-    'H2S ppm': api_h2s_ppm,
-    'Carga H2S (kg/kg)': carga_h2s,
-    'Ingreso estimado (USD/m3)': hhv_total * valor_dolar,
-    'Validación': validacion
-}
 
+    return {
+        'PM': pm_muestra,
+        'PCS (MJ/m3)': hhv_total,
+        'PCS (kcal/m3)': hhv_total * 239.006,
+        'Gamma': gamma,
+        'Wobbe': wobbe,
+        'Densidad (kg/m3)': densidad,
+        'Dew Point estimado (°C)': dew_point,
+        'CO2 (%)': composicion.get('CO2', 0),
+        'H2S ppm': api_h2s_ppm,
+        'Carga H2S (kg/kg)': carga_h2s,
+        'Ingreso estimado (USD/m3)': ingreso,
+        'Validación': validacion
+    }
 
 class PDF(FPDF):
     def header(self):
         try:
-            self.image("LOGO PETROGAS.png", x=10, y=8, w=30)  # Ajustá nombre si es distinto
+            self.image("LOGO PETROGAS.png", x=10, y=8, w=30)
         except:
-            pass  # Si el logo no se encuentra, no rompe el PDF
+            pass
         self.set_font('Arial', 'B', 12)
         self.cell(0, 10, 'Informe de Analisis de Gas Natural', 0, 1, 'C')
         self.ln(15)
@@ -88,8 +90,9 @@ class PDF(FPDF):
             self.cell(0, 8, f"{estado} {param}: {valor:.2f} ({espec})", 0, 1)
         self.ln(5)
 
+# INTERFAZ
 st.title("Analizador de Gas Natural")
-st.markdown("""
+st.markdown("Subí un archivo .csv con una muestra de gas y generá un informe técnico en PDF.")
 ### 🧾 Descripción del sistema
 
 Este sistema permite analizar la composición de una muestra de gas natural a partir de un archivo `.csv` con los porcentajes molares de sus componentes.  
@@ -126,10 +129,8 @@ El sistema calcula:
 
 Una vez subido el archivo, podrás visualizar los resultados y descargar un informe PDF automático.
 """)
-
 valor_dolar = st.number_input("💲 Ingresá el valor estimado en USD por MJ de PCS", value=2.25, step=0.01)
-
-archivo = st.file_uploader("Subí un archivo CSV con una muestra", type="csv")
+archivo = st.file_uploader("📂 Subí un archivo CSV con una muestra", type="csv")
 
 if archivo:
     df = pd.read_csv(archivo)
@@ -153,4 +154,5 @@ if archivo:
         file_name=f"Informe_Gas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
         mime="application/pdf"
     )
+
 
