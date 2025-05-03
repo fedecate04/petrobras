@@ -34,7 +34,6 @@ def analizar_composicion(composicion):
     dew_point = -30 if fracciones.get('C6+', 0) > 0.01 else -60
     api_h2s_ppm = composicion.get('H2S', 0) * 1e4
     carga_h2s = (api_h2s_ppm * PM['H2S'] / 1e6) / (pm_muestra * 1e3)
-    valor_dolar = st.number_input("💲 Ingresá el valor estimado en USD por MJ de PCS", value=2.25, step=0.01)
     validacion = {
         'CO2 (%)': (composicion.get('CO2', 0), ('<', 2, '% molar')),
         'Inertes totales': (sum(composicion.get(k, 0) for k in ['N2', 'CO2', 'O2']), ('<', 4, '% molar')),
@@ -129,6 +128,7 @@ Una vez subido el archivo, podrás visualizar los resultados y descargar un info
 """)
 
 archivo = st.file_uploader("Subi un archivo CSV con una muestra", type="csv")
+valor_dolar = st.number_input("💲 Ingresá el valor estimado en USD por MJ de PCS", value=2.25, step=0.01)
 
 if archivo:
     df = pd.read_csv(archivo)
