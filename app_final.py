@@ -43,7 +43,7 @@ class PDF(FPDF):
         if 'Validación' in resultados:
             self.set_font('Arial', 'B', 10)
             self.cell(0, 8, 'Validación de parámetros:', 0, 1)
-            self.set_font('Helvetica', '', 10)
+            self.set_font('Arial', '', 10)
             for param, (valor, (op, ref, unidad)) in resultados['Validación'].items():
                 if op == '<':
                     cumple = valor < ref
@@ -110,7 +110,6 @@ if modulo == "Gas Natural":
         pdf_bytes = pdf.output(dest='S').encode('latin1')
         buffer = io.BytesIO(pdf_bytes)
 
-
         st.download_button(
             label="📥 Descargar informe PDF",
             data=buffer,
@@ -142,9 +141,8 @@ elif modulo == "Gasolina Estabilizada":
     pdf = PDF()
     pdf.add_page()
     pdf.add_sample("Gasolina", resultados)
-    buffer = io.BytesIO()
-    pdf.output(buffer, 'F')
-    buffer.seek(0)
+    pdf_bytes = pdf.output(dest='S').encode('latin1')
+    buffer = io.BytesIO(pdf_bytes)
 
     st.download_button(
         label="📥 Descargar informe PDF",
@@ -152,4 +150,5 @@ elif modulo == "Gasolina Estabilizada":
         file_name=f"Informe_Gasolina_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
         mime="application/pdf"
     )
+
 
