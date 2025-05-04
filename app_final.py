@@ -7,7 +7,6 @@ from datetime import datetime
 
 st.title("Sistema de Análisis de Calidad - Planta LTS")
 modulo = st.selectbox("🧪 Elegí el tipo de análisis:", ["Gas Natural", "Gasolina Estabilizada"])
-
 PM = {
     'CH4': 16.04, 'C2H6': 30.07, 'C3H8': 44.10,
     'i-C4H10': 58.12, 'n-C4H10': 58.12, 'i-C5H12': 72.15, 'n-C5H12': 72.15,
