@@ -27,7 +27,7 @@ P_std = 101325
 class PDF(FPDF):
     def header(self):
         try:
-            self.image("LOGO_PETROGAS.png", x=10, y=8, w=25)  # Asegurate que este archivo PNG esté en el mismo directorio
+            self.image("LOGO PETROGAS.png", x=10, y=8, w=25)  # Asegurate que este archivo PNG esté en el mismo directorio
         except:
             pass
         self.set_font('Arial', 'B', 12)
