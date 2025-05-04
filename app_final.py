@@ -107,9 +107,9 @@ if modulo == "Gas Natural":
         pdf = PDF()
         pdf.add_page()
         pdf.add_sample("Muestra", resultados)
-        buffer = io.BytesIO()
-        pdf.output(buffer, 'F')
-        buffer.seek(0)
+       pdf_bytes = pdf.output(dest='S').encode('latin1')
+      buffer = io.BytesIO(pdf_bytes)
+
 
         st.download_button(
             label="📥 Descargar informe PDF",
