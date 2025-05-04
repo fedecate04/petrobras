@@ -7,6 +7,7 @@ from datetime import datetime
 
 st.title("Sistema de Análisis de Calidad - Planta LTS")
 modulo = st.selectbox("🧪 Elegí el tipo de análisis:", ["Gas Natural", "Gasolina Estabilizada"])
+
 PM = {
     'CH4': 16.04, 'C2H6': 30.07, 'C3H8': 44.10,
     'i-C4H10': 58.12, 'n-C4H10': 58.12, 'i-C5H12': 72.15, 'n-C5H12': 72.15,
@@ -42,7 +43,7 @@ class PDF(FPDF):
         if 'Validación' in resultados:
             self.set_font('Arial', 'B', 10)
             self.cell(0, 8, 'Validación de parámetros:', 0, 1)
-           self.set_font('Helvetica', '', 10)
+            self.set_font('Helvetica', '', 10)
             for param, (valor, (op, ref, unidad)) in resultados['Validación'].items():
                 if op == '<':
                     cumple = valor < ref
@@ -142,7 +143,7 @@ elif modulo == "Gasolina Estabilizada":
     pdf.add_page()
     pdf.add_sample("Gasolina", resultados)
     buffer = io.BytesIO()
-    pdf.output(buffer)
+    pdf.output(buffer, 'F')
     buffer.seek(0)
 
     st.download_button(
