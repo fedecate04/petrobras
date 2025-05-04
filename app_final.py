@@ -26,6 +26,10 @@ P_std = 101325
 
 class PDF(FPDF):
     def header(self):
+        try:
+            self.image("LOGO_PETROGAS.png", x=10, y=8, w=25)  # Asegurate que este archivo PNG esté en el mismo directorio
+        except:
+            pass
         self.set_font('Arial', 'B', 12)
         self.cell(0, 10, f"Informe de Calidad - {modulo}", 0, 1, 'C')
         self.ln(5)
