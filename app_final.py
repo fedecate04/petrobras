@@ -87,7 +87,7 @@ if modulo == "Gas Natural":
             'Gamma': gamma,
             'Wobbe': wobbe,
             'Densidad (kg/m3)': densidad,
-            'Dew Point estimado (°C)': dew_point,
+            'Dew Point estimado (C)': dew_point,
             'CO2 (%)': composicion.get('CO2', 0),
             'H2S ppm': api_h2s_ppm,
             'Carga H2S (kg/kg)': carga_h2s,
@@ -107,8 +107,9 @@ if modulo == "Gas Natural":
         pdf = PDF()
         pdf.add_page()
         pdf.add_sample("Muestra", resultados)
-        pdf_bytes = pdf.output(dest='S').encode('utf-8', errors='replace')
-        buffer = io.BytesIO(pdf_bytes)
+        buffer = io.BytesIO()
+        pdf.output(buffer)
+        buffer.seek(0)
 
         st.download_button(
             label="📥 Descargar informe PDF",
@@ -119,17 +120,17 @@ if modulo == "Gas Natural":
 
 elif modulo == "Gasolina Estabilizada":
     st.header("📄 Módulo de Gasolina Estabilizada")
-    tvr = st.number_input("🔬 TVR medido a 38.7 °C (psi)", min_value=0.0)
+    tvr = st.number_input("🔬 TVR medido a 38.7 C (psi)", min_value=0.0)
     sales = st.number_input("🧂 Concentración de sales (mg/l)", min_value=0.0)
     color = st.text_area("🎨 Color (observación)")
 
     validacion = {
-        'TVR (psi a 38.7 °C)': (tvr, ('<', 12, 'psi')),
+        'TVR (psi a 38.7 C)': (tvr, ('<', 12, 'psi')),
         'Sales (mg/l)': (sales, ('<', 20, 'mg/l'))
     }
 
     resultados = {
-        'TVR (psi a 38.7 °C)': tvr,
+        'TVR (psi a 38.7 C)': tvr,
         'Concentración de sales (mg/l)': sales,
         'Color': color,
         'Validación': validacion
@@ -141,8 +142,9 @@ elif modulo == "Gasolina Estabilizada":
     pdf = PDF()
     pdf.add_page()
     pdf.add_sample("Gasolina", resultados)
-    pdf_bytes = pdf.output(dest='S').encode('utf-8', errors='replace')
-    buffer = io.BytesIO(pdf_bytes)
+    buffer = io.BytesIO()
+    pdf.output(buffer)
+    buffer.seek(0)
 
     st.download_button(
         label="📥 Descargar informe PDF",
@@ -150,5 +152,4 @@ elif modulo == "Gasolina Estabilizada":
         file_name=f"Informe_Gasolina_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
         mime="application/pdf"
     )
-
 
