@@ -43,7 +43,7 @@ class PDF(FPDF):
         if 'Validación' in resultados:
             self.set_font('Arial', 'B', 10)
             self.cell(0, 8, 'Validación de parámetros:', 0, 1)
-            self.set_font('Arial', '', 10)
+           self.set_font('Helvetica', '', 10)
             for param, (valor, (op, ref, unidad)) in resultados['Validación'].items():
                 if op == '<':
                     cumple = valor < ref
@@ -108,7 +108,7 @@ if modulo == "Gas Natural":
         pdf.add_page()
         pdf.add_sample("Muestra", resultados)
         buffer = io.BytesIO()
-        pdf.output(buffer)
+        pdf.output(buffer, 'F')
         buffer.seek(0)
 
         st.download_button(
