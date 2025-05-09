@@ -1,4 +1,4 @@
-LTS LAB ANALYZER COMPLETO - Con campos adicionales "Muestreo en" y "Muestra tomada por"
+#LTS LAB ANALYZER COMPLETO - Con campos adicionales "Muestreo en" y "Muestra tomada por"
 
 import streamlit as st import pandas as pd from fpdf import FPDF from datetime import datetime from io import BytesIO import os import base64 from pathlib import Path
 
@@ -10,11 +10,11 @@ Configuración general
 
 st.set_page_config(page_title="LTS Lab Analyzer", layout="wide") LOGO_PATH = "logopetrogas.png"
 
-Estilo visual
+#Estilo visual
 
 st.markdown(""" <style> .stApp { background-color: #1e1e1e; color: white; } .stButton>button, .stDownloadButton>button { background-color: #0d6efd; color: white; border-radius: 8px; border: none; } input, textarea, .stTextInput, .stTextArea, .stNumberInput input { background-color: #2e2e2e !important; color: white !important; border: 1px solid #555 !important; } .stSelectbox div { background-color: #2e2e2e !important; color: white !important; } </style> """, unsafe_allow_html=True)
 
-Mostrar logo
+#Mostrar logo
 
 if Path(LOGO_PATH).exists(): with open(LOGO_PATH, "rb") as f: logo_base64 = base64.b64encode(f.read()).decode("utf-8") st.markdown(f""" <div style='text-align:center;'> <img src='data:image/png;base64,{logo_base64}' width='200'/> </div> """, unsafe_allow_html=True) else: st.warning("⚠️ No se encontró el logo 'logopetrogas.png'")
 
