@@ -1,108 +1,46 @@
+LTS LAB ANALYZER COMPLETO - Con campos adicionales "Muestreo en" y "Muestra tomada por"
 
-import streamlit as st
-import pandas as pd
-import numpy as np
-from fpdf import FPDF
-import io
-from datetime import datetime
+import streamlit as st import pandas as pd from fpdf import FPDF from datetime import datetime from io import BytesIO import os import base64 from pathlib import Path
 
-PM = {
-    'CH4': 16.04, 'C2H6': 30.07, 'C3H8': 44.10,
-    'i-C4H10': 58.12, 'n-C4H10': 58.12, 'i-C5H12': 72.15, 'n-C5H12': 72.15,
-    'C6+': 86.00, 'N2': 28.01, 'CO2': 44.01, 'H2S': 34.08, 'O2': 32.00
-}
-HHV = {
-    'CH4': 39.82, 'C2H6': 70.6, 'C3H8': 101.0,
-    'i-C4H10': 131.6, 'n-C4H10': 131.6,
-    'i-C5H12': 161.0, 'n-C5H12': 161.0,
-    'C6+': 190.0
-}
-R = 8.314
-PM_aire = 28.96
-T_std = 288.15
-P_std = 101325
+Función para limpiar caracteres incompatibles
 
-def analizar_composicion(composicion):
-    composicion = {k: float(v) for k, v in composicion.items() if k in PM}
-    total = sum(composicion.values())
-    fracciones = {k: v / total for k, v in composicion.items()}
-    pm_muestra = sum(fracciones[k] * PM[k] for k in fracciones)
-    densidad = (pm_muestra * P_std) / (R * T_std)
-    hhv_total = sum(fracciones.get(k, 0) * HHV.get(k, 0) for k in HHV)
-    gamma = PM_aire / pm_muestra
-    wobbe = hhv_total / np.sqrt(pm_muestra / PM_aire)
-    dew_point = -30 if fracciones.get('C6+', 0) > 0.01 else -60
-    api_h2s_ppm = composicion.get('H2S', 0) * 1e4
-    carga_h2s = (api_h2s_ppm * PM['H2S'] / 1e6) / (pm_muestra * 1e3)
-    ingreso = hhv_total * 2.25
-    validacion = {
-        'CO2 (%)': (composicion.get('CO2', 0), ('<', 2, '% molar')),
-        'Inertes totales': (sum(composicion.get(k, 0) for k in ['N2', 'CO2', 'O2']), ('<', 4, '% molar')),
-        'O2 (%)': (composicion.get('O2', 0), ('<', 0.2, '% molar')),
-        'H2S (ppm)': (api_h2s_ppm, ('<', 2, 'ppm')),
-        'PCS (kcal/m3)': (hhv_total * 239.006, ('>=', (8850, 12200), 'Kcal/Sm³'))
-    }
-    return {
-        'PM': pm_muestra,
-        'PCS (MJ/m3)': hhv_total,
-        'PCS (kcal/m3)': hhv_total * 239.006,
-        'Gamma': gamma,
-        'Wobbe': wobbe,
-        'Densidad (kg/m3)': densidad,
-        'Dew Point estimado (°C)': dew_point,
-        'CO2 (%)': composicion.get('CO2', 0),
-        'H2S ppm': api_h2s_ppm,
-        'Carga H2S (kg/kg)': carga_h2s,
-        'Ingreso estimado (USD/m3)': ingreso,
-        'Validación': validacion
-    }
+def limpiar_pdf_texto(texto): reemplazos = { "₀": "0", "₁": "1", "₂": "2", "₃": "3", "₄": "4", "₅": "5", "₆": "6", "₇": "7", "₈": "8", "₉": "9", "⁰": "0", "¹": "1", "²": "2", "³": "3", "°": " grados ", "º": "", "“": '"', "”": '"', "‘": "'", "’": "'", "–": "-", "—": "-", "•": "-", "→": "->", "←": "<-", "⇒": "=>", "≠": "!=", "≥": ">=", "≤": "<=", "✓": "OK", "✅": "OK", "❌": "NO" } for k, v in reemplazos.items(): texto = texto.replace(k, v) return texto
 
-class PDF(FPDF):
-    def header(self):
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 10, 'Informe de Análisis de Gas Natural', 0, 1, 'C')
-        self.ln(5)
-    def add_sample(self, nombre, resultados):
-        self.set_font('Arial', '', 10)
-        self.cell(0, 10, f"Muestra: {nombre}", 0, 1)
-        for k, v in resultados.items():
-            if k != 'Validación':
-                self.cell(0, 8, f"{k}: {v:.4f}" if isinstance(v, float) else f"{k}: {v}", 0, 1)
-        self.ln(3)
-        self.set_font('Arial', 'B', 10)
-        self.cell(0, 8, 'Validación de parámetros:', 0, 1)
-        self.set_font('Arial', '', 10)
-        for param, (valor, (op, ref, unidad)) in resultados['Validación'].items():
-            if op == '<':
-                cumple = valor < ref
-                espec = f"< {ref} {unidad}"
-            else:
-                cumple = ref[0] <= valor <= ref[1]
-                espec = f"{ref[0]}–{ref[1]} {unidad}"
-            estado = 'CUMPLE' if cumple else 'NO CUMPLE'
-            self.cell(0, 8, f"{estado} {param}: {valor:.2f} ({espec})", 0, 1)
-        self.ln(5)
+Configuración general
 
-st.title("Analizador de Gas Natural")
-archivo = st.file_uploader("Subí un archivo CSV con una muestra", type="csv")
+st.set_page_config(page_title="LTS Lab Analyzer", layout="wide") LOGO_PATH = "logopetrogas.png"
 
-if archivo:
-    df = pd.read_csv(archivo)
-    fila = df.iloc[0]
-    composicion = {k: fila[k] for k in PM if k in fila}
-    resultados = analizar_composicion(composicion)
-    st.subheader("Resultados del análisis")
-    st.dataframe(pd.DataFrame.from_dict(resultados, orient='index', columns=['Valor']))
+Estilo visual
 
-    pdf = PDF()
-    pdf.add_page()
-    pdf.add_sample("Muestra", resultados)
-    buffer = io.BytesIO()
-    pdf.output(buffer)
-    buffer.seek(0)
-    st.download_button(
-        label="Descargar informe PDF",
-        data=buffer,
-        file_name=f"Informe_Gas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-        mime="application/pdf"
-    )
+st.markdown(""" <style> .stApp { background-color: #1e1e1e; color: white; } .stButton>button, .stDownloadButton>button { background-color: #0d6efd; color: white; border-radius: 8px; border: none; } input, textarea, .stTextInput, .stTextArea, .stNumberInput input { background-color: #2e2e2e !important; color: white !important; border: 1px solid #555 !important; } .stSelectbox div { background-color: #2e2e2e !important; color: white !important; } </style> """, unsafe_allow_html=True)
+
+Mostrar logo
+
+if Path(LOGO_PATH).exists(): with open(LOGO_PATH, "rb") as f: logo_base64 = base64.b64encode(f.read()).decode("utf-8") st.markdown(f""" <div style='text-align:center;'> <img src='data:image/png;base64,{logo_base64}' width='200'/> </div> """, unsafe_allow_html=True) else: st.warning("⚠️ No se encontró el logo 'logopetrogas.png'")
+
+st.markdown("<h2 style='text-align:center;'>🧪 LTS Lab Analyzer</h2>", unsafe_allow_html=True)
+
+Clase PDF
+
+class PDF(FPDF): def header(self): if os.path.exists(LOGO_PATH): self.image(LOGO_PATH, 10, 8, 33) self.set_font("Arial", "B", 12) self.cell(0, 10, "INFORME DE ANÁLISIS DE LABORATORIO", 0, 1, "C") self.set_font("Arial", "", 10) self.cell(0, 10, f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M')}", 0, 1, "R") self.ln(5)
+
+def footer(self):
+    self.set_y(-15)
+    self.set_font("Arial", "I", 8)
+    self.cell(0, 10, "Confidencial - Uso interno PETROGAS", 0, 0, "C")
+
+def add_section(self, title, content):
+    self.set_font("Arial", "B", 11)
+    self.cell(0, 10, title, 0, 1)
+    self.set_font("Arial", "", 10)
+    if isinstance(content, dict):
+        for k, v in content.items():
+            self.cell(0, 8, f"{k}: {v}", 0, 1)
+    else:
+        self.multi_cell(0, 8, str(content))
+    self.ln(2)
+
+Función para exportar PDF con nuevos campos incluidos
+
+def exportar_pdf(nombre, operador, explicacion, resultados, observaciones, muestreo_en, muestra_por): pdf = PDF() pdf.add_page() pdf.add_section("Operador", limpiar_pdf_texto(operador)) pdf.add_section("Muestreo en", limpiar_pdf_texto(muestreo_en)) pdf.add_section("Muestra tomada por", limpiar_pdf_texto(muestra_por)) pdf.add_section("Explicación técnica", limpiar_pdf_texto(explicacion)) pdf.add_section("Resultados", {k: limpiar_pdf_texto(str(v)) for k, v in resultados.items()}) pdf.add_section("Observaciones", limpiar_pdf_texto(observaciones or "Sin observaciones.")) output = pdf.output(dest='S').encode('latin-1', errors='ignore') st.download_button("⬇️ Descargar informe PDF", data=BytesIO(output), file_name=nombre, mime="application/pdf")
+
